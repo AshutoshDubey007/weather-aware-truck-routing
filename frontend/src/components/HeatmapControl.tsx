@@ -9,8 +9,8 @@ import {
   Snowflake, 
   ShieldAlert, 
   Thermometer, 
-  Eye,
-  EyeOff
+  Eye, 
+  EyeOff 
 } from 'lucide-react';
 import { HeatmapHour } from '../types';
 
@@ -41,7 +41,6 @@ export const HeatmapControl: React.FC<HeatmapControlProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
-  // Playback loop
   useEffect(() => {
     if (!isPlaying || !hours || hours.length === 0) return;
 
@@ -55,23 +54,23 @@ export const HeatmapControl: React.FC<HeatmapControlProps> = ({
   const currentHour = hours[currentHourIndex] || hours[0];
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-2xl backdrop-blur-md">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+    <div className="bg-white border-4 border-slate-950 p-5 shadow-arcade">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b-2 border-slate-950">
         {/* Title and Forecast time */}
-        <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-teal-400" />
-          <span className="text-xs font-bold uppercase tracking-wider text-white">
-            Corridor Weather Heatmap
+        <div className="flex items-center gap-2.5">
+          <Layers className="w-5 h-5 text-emerald-600" />
+          <span className="font-arcade text-xs sm:text-sm text-slate-950">
+            CORRIDOR WEATHER RADAR
           </span>
-          <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">
-            {currentHour?.label || '+0h'}
+          <span className="font-arcade text-xs font-bold px-2.5 py-0.5 bg-emerald-600 text-white border-2 border-slate-950 shadow-arcade-press">
+            {currentHour?.label || '+0H'}
           </span>
         </div>
 
         {/* Visibility Toggle and Opacity Slider */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <span className="text-[10px]">Opacity:</span>
+        <div className="flex items-center gap-4 text-xs sm:text-sm font-bold">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-900">OPACITY:</span>
             <input
               type="range"
               min={0.1}
@@ -79,30 +78,30 @@ export const HeatmapControl: React.FC<HeatmapControlProps> = ({
               step={0.05}
               value={opacity}
               onChange={(e) => onOpacityChange(Number(e.target.value))}
-              className="w-16 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-400"
+              className="w-24 h-2.5 bg-slate-200 border border-slate-950 appearance-none cursor-pointer accent-orange-500"
             />
-            <span className="font-mono text-[10px] w-7 text-right">
+            <span className="font-arcade text-xs w-10 text-right">
               {Math.round(opacity * 100)}%
             </span>
           </div>
 
           <button
             onClick={onToggleVisible}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
+            className={`px-3.5 py-1.5 font-arcade text-xs font-bold border-2 border-slate-950 shadow-arcade-press flex items-center gap-1.5 transition-all cursor-pointer ${
               isVisible
-                ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
-                : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
             }`}
           >
             {isVisible ? (
               <>
-                <Eye className="w-3.5 h-3.5" />
-                <span>Active</span>
+                <Eye className="w-4 h-4 stroke-[2.5]" />
+                <span>RADAR ON</span>
               </>
             ) : (
               <>
-                <EyeOff className="w-3.5 h-3.5" />
-                <span>Hidden</span>
+                <EyeOff className="w-4 h-4 stroke-[2.5]" />
+                <span>RADAR OFF</span>
               </>
             )}
           </button>
@@ -110,24 +109,24 @@ export const HeatmapControl: React.FC<HeatmapControlProps> = ({
       </div>
 
       {/* Metric Selector Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 mb-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-4">
         {[
-          { key: 'risk', label: 'Composite Risk', icon: ShieldAlert, color: 'text-amber-400' },
-          { key: 'wind', label: 'Wind Speed', icon: Wind, color: 'text-cyan-400' },
-          { key: 'rain', label: 'Precip / Rain', icon: CloudRain, color: 'text-blue-400' },
-          { key: 'snow', label: 'Snowfall', icon: Snowflake, color: 'text-indigo-300' },
-          { key: 'temp', label: 'Temperature', icon: Thermometer, color: 'text-emerald-400' },
-        ].map(({ key, label, icon: Icon, color }) => (
+          { key: 'risk', label: 'COMPOSITE RISK', icon: ShieldAlert },
+          { key: 'wind', label: 'WIND SPEED', icon: Wind },
+          { key: 'rain', label: 'RAIN / PRECIP', icon: CloudRain },
+          { key: 'snow', label: 'SNOWFALL', icon: Snowflake },
+          { key: 'temp', label: 'TEMPERATURE', icon: Thermometer },
+        ].map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => onMetricChange(key as HeatmapMetric)}
-            className={`py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border ${
+            className={`py-2.5 px-3 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border-2 border-slate-950 transition-all cursor-pointer ${
               activeMetric === key
-                ? 'bg-slate-800 text-white border-teal-500/60 shadow-md shadow-teal-500/10'
-                : 'bg-slate-950/60 text-slate-400 border-slate-800/80 hover:bg-slate-800 hover:text-slate-200'
+                ? 'bg-orange-500 text-white shadow-arcade-press translate-x-0.5 translate-y-0.5 font-extrabold'
+                : 'bg-white text-slate-900 hover:bg-orange-50 shadow-arcade'
             }`}
           >
-            <Icon className={`w-3.5 h-3.5 ${color}`} />
+            <Icon className="w-4 h-4 stroke-[2.5]" />
             <span className="truncate">{label}</span>
           </button>
         ))}
@@ -138,14 +137,14 @@ export const HeatmapControl: React.FC<HeatmapControlProps> = ({
         {/* Play/Pause Button */}
         <button
           onClick={() => setIsPlaying(!isPlaying)}
-          className={`p-2 rounded-xl font-bold transition-all shadow-md ${
+          className={`p-3.5 border-2 border-slate-950 shadow-arcade transition-all active:translate-x-1 active:translate-y-1 active:shadow-none cursor-pointer ${
             isPlaying
-              ? 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-              : 'bg-teal-500 hover:bg-teal-400 text-slate-950'
+              ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
+              : 'bg-emerald-600 hover:bg-emerald-500 text-white'
           }`}
           title={isPlaying ? 'Pause 48h simulation' : 'Play 48h weather simulation'}
         >
-          {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
+          {isPlaying ? <Pause className="w-5 h-5 stroke-[3]" /> : <Play className="w-5 h-5 fill-current" />}
         </button>
 
         {/* Reset Button */}
@@ -154,10 +153,10 @@ export const HeatmapControl: React.FC<HeatmapControlProps> = ({
             setIsPlaying(false);
             onHourChange(0);
           }}
-          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
+          className="p-3.5 bg-white hover:bg-slate-100 text-slate-950 border-2 border-slate-950 shadow-arcade transition-all active:translate-x-1 active:translate-y-1 active:shadow-none cursor-pointer"
           title="Reset to Departure Time (+0h)"
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className="w-5 h-5 stroke-[2.5]" />
         </button>
 
         {/* Slider */}
@@ -171,14 +170,14 @@ export const HeatmapControl: React.FC<HeatmapControlProps> = ({
               setIsPlaying(false);
               onHourChange(Number(e.target.value));
             }}
-            className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-teal-400"
+            className="w-full h-3 bg-slate-200 border-2 border-slate-950 appearance-none cursor-pointer accent-orange-500"
           />
-          <div className="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
-            <span>+0h (Departure)</span>
-            <span>+12h</span>
-            <span>+24h</span>
-            <span>+36h</span>
-            <span>+48h (Forecast Horizon)</span>
+          <div className="flex justify-between text-xs text-slate-800 font-bold mt-1.5">
+            <span>+0H (DEPARTURE)</span>
+            <span>+12H</span>
+            <span>+24H</span>
+            <span>+36H</span>
+            <span>+48H (FORECAST HORIZON)</span>
           </div>
         </div>
       </div>

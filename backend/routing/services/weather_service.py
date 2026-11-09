@@ -4,6 +4,7 @@ Provides:
 1. Exact checkpoint weather sampling at arrival ETA.
 2. 0-48 hour corridor weather grid for smooth interactive forecast heatmap.
 """
+import os
 import requests
 import logging
 from datetime import datetime, timedelta
@@ -11,6 +12,8 @@ from typing import List, Dict, Any, Tuple
 from routing.services.risk_calculator import calculate_checkpoint_risk, RiskLevel
 
 logger = logging.getLogger(__name__)
+
+OPENWEATHER_API_KEY = os.environ.get('OPENWEATHER_API_KEY', '').strip()
 
 # WMO Weather interpretation codes
 WMO_DESCRIPTIONS = {
@@ -43,6 +46,26 @@ WMO_DESCRIPTIONS = {
 
 def get_weather_description(wmo_code: int) -> str:
     return WMO_DESCRIPTIONS.get(wmo_code, "Partly Cloudy")
+
+
+def fetch_openweather_data(lat: float, lon: float) -> Dict[str, Any] | None:
+    """
+    Fetches current weather from OpenWeatherMap using the user's API key.
+    Falls back to Open-Meteo if the key is inactive (401) or times out.
+    """
+    if not OPENWEATHER_API_KEY:
+        return None
+
+    try:
+        url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat:.4f}&lon={lon:.4f}&appid={OPENWEATHER_API_KEY}&units=imperial"
+        resp = requests.get(url, timeout=5)
+        if resp.status_code == 200:
+            return resp.json()
+        elif resp.status_code == 401:
+            logger.info("OpenWeatherMap key is pending activation (takes ~15-30m after registration). Using Open-Meteo.")
+    except Exception as e:
+        logger.warning(f"OpenWeatherMap request failed: {e}")
+    return None
 
 
 def fetch_open_meteo_forecasts(coords: List[Tuple[float, float]], forecast_days: int = 3) -> List[Dict[str, Any]]:

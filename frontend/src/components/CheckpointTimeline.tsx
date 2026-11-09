@@ -6,8 +6,8 @@ import {
   CloudRain, 
   Snowflake, 
   AlertTriangle, 
-  ShieldCheck,
-  Scale
+  ShieldCheck, 
+  Scale 
 } from 'lucide-react';
 
 interface CheckpointTimelineProps {
@@ -15,12 +15,12 @@ interface CheckpointTimelineProps {
   sampleIntervalMiles: number;
 }
 
-const RISK_BADGE_STYLES: Record<RiskLevelType, string> = {
-  Low: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-  Moderate: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-  High: 'bg-orange-500/20 text-orange-300 border-orange-500/40',
-  Severe: 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold',
-  'No Travel': 'bg-rose-900/60 text-rose-200 border-rose-700 font-extrabold animate-pulse',
+const ARCADE_RISK_STYLES: Record<RiskLevelType, string> = {
+  Low: 'bg-emerald-600 text-white border-2 border-slate-950 font-bold',
+  Moderate: 'bg-amber-400 text-slate-950 border-2 border-slate-950 font-bold',
+  High: 'bg-orange-500 text-white border-2 border-slate-950 font-bold',
+  Severe: 'bg-red-600 text-white border-2 border-slate-950 font-bold',
+  'No Travel': 'bg-red-950 text-white border-2 border-slate-950 font-extrabold animate-pulse',
 };
 
 export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
@@ -40,79 +40,79 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
   ).length;
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+    <div className="bg-white border-4 border-slate-950 p-5 shadow-arcade">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b-2 border-slate-950">
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-teal-400" />
-            <span>Checkpoint Weather & ETA Schedule ({checkpoints.length} Samples @ {sampleIntervalMiles} mi)</span>
+          <h3 className="font-arcade text-xs sm:text-sm text-slate-950 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-emerald-600" />
+            <span>CHECKPOINT SCHEDULE ({checkpoints.length} SAMPLES @ {sampleIntervalMiles} MI)</span>
           </h3>
-          <p className="text-[11px] text-slate-400">
-            Calculated at the truck's exact estimated arrival time at each milepost
+          <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-0.5">
+            Sampled at estimated truck arrival timestamp at each milepost
           </p>
         </div>
 
         {/* Filter Toggle */}
-        <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setFilter('all')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+            className={`px-3.5 py-1.5 text-xs sm:text-sm font-bold border-2 border-slate-950 transition-all cursor-pointer ${
               filter === 'all'
-                ? 'bg-slate-800 text-white'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-600 text-white shadow-arcade-press translate-x-0.5 translate-y-0.5'
+                : 'bg-white text-slate-900 hover:bg-emerald-50 shadow-arcade'
             }`}
           >
-            All Checkpoints ({checkpoints.length})
+            ALL SAMPLES ({checkpoints.length})
           </button>
           <button
             onClick={() => setFilter('hazards')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
+            className={`px-3.5 py-1.5 text-xs sm:text-sm font-bold border-2 border-slate-950 flex items-center gap-1.5 transition-all cursor-pointer ${
               filter === 'hazards'
-                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                : 'text-slate-400 hover:text-rose-400'
+                ? 'bg-orange-500 text-white shadow-arcade-press translate-x-0.5 translate-y-0.5'
+                : 'bg-white text-slate-900 hover:bg-orange-50 shadow-arcade'
             }`}
           >
-            <AlertTriangle className="w-3 h-3 text-rose-400" />
-            <span>Hazards Only ({hazardCount})</span>
+            <AlertTriangle className="w-4 h-4 stroke-[2.5]" />
+            <span>HAZARDS ONLY ({hazardCount})</span>
           </button>
         </div>
       </div>
 
       {displayedCheckpoints.length === 0 ? (
-        <div className="py-8 text-center text-slate-400 bg-slate-950/50 rounded-xl border border-slate-800">
-          <ShieldCheck className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-          <p className="text-xs font-semibold text-emerald-300">Zero Severe Hazards Found Along This Route</p>
-          <p className="text-[11px] text-slate-500 mt-1">All checkpoints meet safety operating criteria.</p>
+        <div className="py-8 text-center bg-emerald-50 border-2 border-dashed border-emerald-600">
+          <ShieldCheck className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
+          <p className="font-arcade text-xs text-emerald-800">ZERO SEVERE HAZARDS DETECTED</p>
+          <p className="text-sm font-bold text-emerald-700 mt-1">ALL CHECKPOINTS ARE CLEAR FOR SAFE TRANSIT.</p>
         </div>
       ) : (
-        <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+        <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
           {displayedCheckpoints.map((cp) => {
             const w = cp.weather;
-            const badgeClass = RISK_BADGE_STYLES[cp.overall_risk] || RISK_BADGE_STYLES.Low;
+            const badgeClass = ARCADE_RISK_STYLES[cp.overall_risk] || ARCADE_RISK_STYLES.Low;
             const isNoTravel = cp.overall_risk === 'No Travel';
             const isSevere = cp.overall_risk === 'Severe';
 
             return (
               <div
                 key={cp.index}
-                className={`p-3 rounded-xl border transition-all ${
+                className={`p-3.5 border-2 border-slate-950 transition-all ${
                   isNoTravel
-                    ? 'bg-rose-950/30 border-rose-800/80'
+                    ? 'bg-red-50 shadow-arcade-press'
                     : isSevere
-                    ? 'bg-rose-900/10 border-rose-500/30'
-                    : 'bg-slate-950/60 border-slate-800/80 hover:bg-slate-850'
+                    ? 'bg-orange-50 shadow-arcade-press'
+                    : 'bg-white hover:bg-slate-50 shadow-arcade-press'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center font-mono font-bold text-xs text-slate-200">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-8 h-8 bg-slate-950 text-white font-arcade text-xs font-bold flex items-center justify-center shrink-0">
                       #{cp.index + 1}
                     </span>
                     <div>
-                      <span className="font-bold text-xs text-slate-200">
-                        Mile {cp.distance_from_start_miles.toFixed(1)}
+                      <span className="text-sm font-extrabold text-slate-950">
+                        MILE {cp.distance_from_start_miles.toFixed(1)}
                       </span>
-                      <span className="text-[11px] text-slate-400 ml-2 font-mono">
+                      <span className="text-xs font-semibold text-slate-600 ml-2">
                         ({cp.latitude.toFixed(3)}, {cp.longitude.toFixed(3)})
                       </span>
                     </div>
@@ -120,69 +120,69 @@ export const CheckpointTimeline: React.FC<CheckpointTimelineProps> = ({
 
                   <div className="flex items-center gap-2">
                     {/* ETA */}
-                    <div className="flex items-center gap-1 text-xs text-slate-300 font-mono">
-                      <Clock className="w-3.5 h-3.5 text-blue-400" />
+                    <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-950 font-bold bg-slate-100 px-2.5 py-1 border border-slate-950">
+                      <Clock className="w-4 h-4 text-emerald-600" />
                       <span>{cp.eta_formatted}</span>
                     </div>
 
-                    {/* Overall Risk Badge */}
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] border ${badgeClass}`}>
+                    {/* Risk Badge */}
+                    <span className={`px-2.5 py-1 text-xs font-arcade font-bold ${badgeClass}`}>
                       {cp.overall_risk}
                     </span>
                   </div>
                 </div>
 
-                {/* Weather Data Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-slate-900/60 p-2 rounded-lg border border-slate-800/60 font-mono">
+                {/* Weather stats grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-slate-50 p-2.5 border border-slate-950 text-xs sm:text-sm">
                   {/* Wind */}
-                  <div className="flex items-center gap-1.5">
-                    <Wind className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <div className="flex items-center gap-2">
+                    <Wind className="w-4 h-4 text-emerald-600 shrink-0" />
                     <div>
-                      <span className="text-[10px] text-slate-400 block font-sans">Wind / Gusts</span>
-                      <span className={cp.wind_risk === 'No Travel' || cp.wind_risk === 'Severe' ? 'text-rose-400 font-bold' : 'text-slate-200'}>
-                        {w.wind_speed_mph} / {w.wind_gusts_mph} mph
+                      <span className="text-[10px] text-slate-600 block uppercase font-bold">WIND / GUSTS</span>
+                      <span className={cp.wind_risk === 'No Travel' || cp.wind_risk === 'Severe' ? 'text-red-600 font-extrabold' : 'text-slate-950 font-bold'}>
+                        {w.wind_speed_mph} / {w.wind_gusts_mph} MPH
                       </span>
                     </div>
                   </div>
 
                   {/* Rain */}
-                  <div className="flex items-center gap-1.5">
-                    <CloudRain className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <div className="flex items-center gap-2">
+                    <CloudRain className="w-4 h-4 text-blue-600 shrink-0" />
                     <div>
-                      <span className="text-[10px] text-slate-400 block font-sans">Rain Rate</span>
-                      <span className={cp.rain_risk === 'Severe' || cp.rain_risk === 'No Travel' ? 'text-rose-400 font-bold' : 'text-slate-200'}>
-                        {w.rain_in_hr.toFixed(2)} in/hr
+                      <span className="text-[10px] text-slate-600 block uppercase font-bold">RAIN RATE</span>
+                      <span className={cp.rain_risk === 'Severe' || cp.rain_risk === 'No Travel' ? 'text-red-600 font-extrabold' : 'text-slate-950 font-bold'}>
+                        {w.rain_in_hr.toFixed(2)} IN/HR
                       </span>
                     </div>
                   </div>
 
                   {/* Snow */}
-                  <div className="flex items-center gap-1.5">
-                    <Snowflake className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
+                  <div className="flex items-center gap-2">
+                    <Snowflake className="w-4 h-4 text-indigo-500 shrink-0" />
                     <div>
-                      <span className="text-[10px] text-slate-400 block font-sans">Snowfall</span>
-                      <span className={cp.snow_risk === 'Severe' || cp.snow_risk === 'No Travel' ? 'text-rose-400 font-bold' : 'text-slate-200'}>
-                        {w.snow_in_hr.toFixed(2)} in/hr
+                      <span className="text-[10px] text-slate-600 block uppercase font-bold">SNOWFALL</span>
+                      <span className={cp.snow_risk === 'Severe' || cp.snow_risk === 'No Travel' ? 'text-red-600 font-extrabold' : 'text-slate-950 font-bold'}>
+                        {w.snow_in_hr.toFixed(2)} IN/HR
                       </span>
                     </div>
                   </div>
 
                   {/* Condition & Temp */}
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-sans">Condition</span>
-                    <span className="text-slate-200 font-sans truncate block" title={w.condition}>
+                    <span className="text-[10px] text-slate-600 block uppercase font-bold">CONDITION</span>
+                    <span className="text-slate-950 font-bold truncate block">
                       {w.condition} ({w.temperature_f}°F)
                     </span>
                   </div>
                 </div>
 
-                {/* Load Advisories if present */}
+                {/* Advisories */}
                 {cp.advisories && cp.advisories.length > 0 && (
-                  <div className="mt-2 p-2 rounded bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-300 flex items-start gap-1.5">
-                    <Scale className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                  <div className="mt-2.5 p-2 bg-red-100 border-2 border-red-600 text-xs text-red-950 font-bold flex items-start gap-2">
+                    <Scale className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                     <div className="space-y-0.5">
                       {cp.advisories.map((adv, aIdx) => (
-                        <p key={aIdx}>{adv}</p>
+                        <p key={aIdx}>⚠️ {adv}</p>
                       ))}
                     </div>
                   </div>

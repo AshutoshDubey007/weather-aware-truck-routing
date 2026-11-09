@@ -4,55 +4,95 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 font-sans;
+    @apply bg-slate-100 text-slate-900 min-h-screen;
+    background-color: #f8fafc;
+    background-image: 
+      linear-gradient(to right, rgba(22, 163, 74, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(234, 88, 12, 0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+    color: #0f172a;
+    font-family: 'Chakra Petch', sans-serif;
+    letter-spacing: 0.01em;
+  }
+
+  /* Headings & Arcade titles */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+    color: #0f172a;
+    letter-spacing: 0.02em;
+    font-weight: 800;
+  }
+
+  /* Form Labels & Text */
+  label {
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #0f172a;
+  }
+
+  /* Inputs - Crystal clear, spacious, ultra-readable */
+  input, select, textarea {
+    @apply bg-white border-2 border-slate-950 text-slate-950 font-bold focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 rounded-none;
+    font-family: 'Chakra Petch', sans-serif !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  input::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
   }
 }
 
-/* Custom scrollbars */
+/* Custom Arcade Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: #f1f5f9;
+  border-left: 2px solid #09090b;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(51, 65, 85, 0.8);
-  border-radius: 9999px;
+  background: #f97316;
+  border: 2px solid #09090b;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(71, 85, 105, 1);
+  background: #16a34a;
 }
 
-/* Leaflet dark theme adjustments */
+/* Leaflet Arcade Map Styling */
 .leaflet-container {
-  background-color: #0b1120 !important;
-  font-family: inherit !important;
+  background-color: #f1f5f9 !important;
+  font-family: 'Chakra Petch', sans-serif !important;
 }
 
 .leaflet-popup-content-wrapper {
-  background: #0f172a !important;
-  color: #f8fafc !important;
-  border: 1px solid #334155 !important;
-  border-radius: 0.75rem !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  background: #ffffff !important;
+  color: #09090b !important;
+  border: 3px solid #09090b !important;
+  border-radius: 0px !important;
+  box-shadow: 4px 4px 0px #09090b !important;
   padding: 0 !important;
+  font-family: 'Chakra Petch', sans-serif !important;
 }
 
 .leaflet-popup-content {
   margin: 0 !important;
   line-height: 1.4 !important;
+  color: #09090b !important;
 }
 
 .leaflet-popup-tip {
-  background: #0f172a !important;
-  border: 1px solid #334155 !important;
+  background: #ffffff !important;
+  border: 2px solid #09090b !important;
 }
 
 .leaflet-popup-close-button {
-  color: #94a3b8 !important;
+  color: #09090b !important;
   padding: 8px !important;
+  font-weight: bold !important;
 }
 .leaflet-popup-close-button:hover {
-  color: #ffffff !important;
+  color: #ea580c !important;
 }

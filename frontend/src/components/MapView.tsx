@@ -14,12 +14,12 @@ interface MapViewProps {
   heatmapOpacity: number;
 }
 
-const RISK_COLORS: Record<string, string> = {
-  Low: '#10b981',
-  Moderate: '#f59e0b',
-  High: '#f97316',
-  Severe: '#ef4444',
-  'No Travel': '#881337',
+const ARCADE_RISK_COLORS: Record<string, string> = {
+  Low: '#16a34a',       // Arcade Green
+  Moderate: '#f59e0b',  // Yellow / Amber
+  High: '#f97316',      // Arcade Orange
+  Severe: '#ef4444',    // Bright Red
+  'No Travel': '#7f1d1d', // Dark Red
 };
 
 export const MapView: React.FC<MapViewProps> = ({
@@ -39,26 +39,25 @@ export const MapView: React.FC<MapViewProps> = ({
   const truckMarkerRef = useRef<L.Marker | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Initialize Leaflet Map once
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
     const map = L.map(mapContainerRef.current, {
-      center: [39.8283, -98.5795], // Geographic center of US
+      center: [39.8283, -98.5795],
       zoom: 4,
       zoomControl: false,
     });
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Dark sleek map tiles
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+    // Bright, crisp CartoDB Voyager tiles (fits the white, green & orange theme!)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; CARTO &copy; OpenStreetMap',
       subdomains: 'abcd',
       maxZoom: 19,
     }).addTo(map);
 
-    // Create custom canvas overlay for heatmap
+    // HTML5 Canvas overlay for 60fps weather heatmap
     const canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';
     canvas.style.top = '0';
@@ -79,7 +78,6 @@ export const MapView: React.FC<MapViewProps> = ({
     };
   }, []);
 
-  // Update canvas size on resize or zoom
   const updateCanvasBounds = () => {
     const map = mapInstanceRef.current;
     const canvas = canvasRef.current;
@@ -115,201 +113,183 @@ export const MapView: React.FC<MapViewProps> = ({
       latLngs.forEach((ll) => allBounds.extend(ll));
 
       if (!isSelected) {
-        // Background alternate routes
         const polyline = L.polyline(latLngs, {
-          color: route.color,
+          color: route.color || '#ea580c',
           weight: 4,
           opacity: 0.5,
-          dashArray: '6, 8',
+          dashArray: '8, 8',
         });
         polyline.on('click', () => onSelectRoute(route.id));
         polyline.bindTooltip(`<b>${route.name}</b><br>${route.duration_formatted} • ${route.distance_miles} mi`, {
           sticky: true,
-          className: 'bg-slate-900 text-slate-100 border border-slate-700 px-2 py-1 rounded text-xs',
+          className: 'bg-white text-slate-950 border-2 border-slate-950 font-pixel text-xs p-1 shadow-arcade',
         });
         routeLayers.addLayer(polyline);
       }
     });
 
-    // 2. Render Selected Route on top with glow and risk-colored segments
+    // 2. Selected Route (Highlighted with arcade double-border effect)
     const selectedLatLngs = selectedRoute.coordinates.map((c) => L.latLng(c[0], c[1]));
 
-    // Underlying glow
-    const glowLine = L.polyline(selectedLatLngs, {
-      color: '#38bdf8',
+    // Underlying shadow stroke
+    const shadowLine = L.polyline(selectedLatLngs, {
+      color: '#09090b',
       weight: 8,
-      opacity: 0.35,
+      opacity: 0.9,
     });
-    routeLayers.addLayer(glowLine);
+    routeLayers.addLayer(shadowLine);
 
-    // Primary vibrant line
+    // Primary bright route stroke (Arcade Green)
     const mainLine = L.polyline(selectedLatLngs, {
-      color: selectedRoute.color,
+      color: selectedRoute.color || '#16a34a',
       weight: 5,
-      opacity: 0.95,
+      opacity: 1.0,
     });
     routeLayers.addLayer(mainLine);
 
-    // 3. Render Origin & Destination Pins
+    // 3. Origin & Destination Arcade Pins
     if (selectedRoute.coordinates.length > 0) {
       const startCoord = selectedRoute.coordinates[0];
       const endCoord = selectedRoute.coordinates[selectedRoute.coordinates.length - 1];
 
-      // Origin Pin
+      // Origin Pin (Arcade Green)
       const originIcon = L.divIcon({
-        className: 'custom-pin',
+        className: 'arcade-pin-origin',
         html: `
           <div style="
-            background: #10b981;
-            color: #022c22;
-            font-weight: 800;
+            background: #16a34a;
+            color: #ffffff;
+            font-family: 'Press Start 2P', cursive;
             font-size: 11px;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid #ffffff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border: 3px solid #09090b;
+            box-shadow: 3px 3px 0px #09090b;
           ">A</div>
         `,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
       });
       const originMarker = L.marker([startCoord[0], startCoord[1]], { icon: originIcon });
       originMarker.bindPopup(`
-        <div style="padding: 10px;">
-          <h4 style="font-weight: bold; color: #10b981; margin: 0 0 4px 0; font-size: 13px;">Trip Origin</h4>
-          <p style="margin: 0; font-size: 11px; color: #cbd5e1;">Departure: ${selectedRoute.checkpoints[0]?.eta_formatted || 'Scheduled'}</p>
+        <div style="padding: 10px; font-family: 'Silkscreen', monospace;">
+          <h4 style="font-family: 'Press Start 2P', cursive; font-size: 11px; color: #16a34a; margin: 0 0 6px 0;">[START POINT]</h4>
+          <p style="margin: 0; font-size: 12px; color: #09090b;">DEPARTURE: ${selectedRoute.checkpoints[0]?.eta_formatted || 'Scheduled'}</p>
         </div>
       `);
       cpLayers.addLayer(originMarker);
 
-      // Destination Pin
+      // Destination Pin (Arcade Orange)
       const destIcon = L.divIcon({
-        className: 'custom-pin',
+        className: 'arcade-pin-dest',
         html: `
           <div style="
-            background: #ef4444;
+            background: #f97316;
             color: #ffffff;
-            font-weight: 800;
+            font-family: 'Press Start 2P', cursive;
             font-size: 11px;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid #ffffff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border: 3px solid #09090b;
+            box-shadow: 3px 3px 0px #09090b;
           ">B</div>
         `,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
       });
       const destMarker = L.marker([endCoord[0], endCoord[1]], { icon: destIcon });
       const lastCp = selectedRoute.checkpoints[selectedRoute.checkpoints.length - 1];
       destMarker.bindPopup(`
-        <div style="padding: 10px;">
-          <h4 style="font-weight: bold; color: #ef4444; margin: 0 0 4px 0; font-size: 13px;">Trip Destination</h4>
-          <p style="margin: 0; font-size: 11px; color: #cbd5e1;">Final ETA: ${lastCp?.eta_formatted || selectedRoute.duration_formatted}</p>
-          <p style="margin: 2px 0 0 0; font-size: 11px; color: #cbd5e1;">Total Distance: ${selectedRoute.distance_miles} miles</p>
+        <div style="padding: 10px; font-family: 'Silkscreen', monospace;">
+          <h4 style="font-family: 'Press Start 2P', cursive; font-size: 11px; color: #ea580c; margin: 0 0 6px 0;">[GOAL / FINISH]</h4>
+          <p style="margin: 0; font-size: 12px; color: #09090b;">FINAL ETA: ${lastCp?.eta_formatted || selectedRoute.duration_formatted}</p>
+          <p style="margin: 4px 0 0 0; font-size: 12px; color: #09090b;">TOTAL: ${selectedRoute.distance_miles} MILES</p>
         </div>
       `);
       cpLayers.addLayer(destMarker);
     }
 
-    // 4. Render Checkpoints for Selected Route
+    // 4. Render Checkpoints
     selectedRoute.checkpoints.forEach((cp, idx) => {
-      // Skip very first and very last point to not overlap with pins
       if (idx === 0 || idx === selectedRoute.checkpoints.length - 1) return;
 
-      const riskColor = RISK_COLORS[cp.overall_risk] || '#10b981';
+      const riskColor = ARCADE_RISK_COLORS[cp.overall_risk] || '#16a34a';
       const isSevereOrNoTravel = cp.overall_risk === 'Severe' || cp.overall_risk === 'No Travel';
 
       const cpIcon = L.divIcon({
-        className: 'custom-cp',
+        className: 'custom-arcade-cp',
         html: `
           <div style="
-            position: relative;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
+            background: ${riskColor};
+            border: 2px solid #09090b;
+            box-shadow: 2px 2px 0px #09090b;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: #ffffff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
           ">
-            ${isSevereOrNoTravel ? `
-              <div style="
-                position: absolute;
-                inset: -4px;
-                border-radius: 50%;
-                background: ${riskColor};
-                opacity: 0.4;
-                animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-              "></div>
-            ` : ''}
-            <div style="
-              width: 14px;
-              height: 14px;
-              border-radius: 50%;
-              background: ${riskColor};
-              border: 2px solid #ffffff;
-              box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-            "></div>
+            ${isSevereOrNoTravel ? '!' : ''}
           </div>
         `,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
       });
 
       const marker = L.marker([cp.latitude, cp.longitude], { icon: cpIcon });
 
       const w = cp.weather;
       const popupHtml = `
-        <div style="padding: 12px; min-width: 230px; font-family: sans-serif;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-            <span style="font-weight: 700; font-size: 13px; color: #ffffff;">Checkpoint #${idx + 1}</span>
+        <div style="padding: 12px; min-width: 250px; font-family: 'Silkscreen', monospace;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; border-bottom: 2px solid #09090b; padding-bottom: 6px;">
+            <span style="font-family: 'Press Start 2P', cursive; font-size: 10px; color: #09090b;">CP #${idx + 1}</span>
             <span style="
-              background: ${riskColor}22;
-              color: ${riskColor};
-              border: 1px solid ${riskColor}66;
+              background: ${riskColor};
+              color: #ffffff;
+              border: 1px solid #09090b;
               padding: 2px 6px;
-              border-radius: 9999px;
-              font-size: 10px;
-              font-weight: 700;
-              text-transform: uppercase;
+              font-family: 'Press Start 2P', cursive;
+              font-size: 8px;
             ">${cp.overall_risk}</span>
           </div>
 
-          <div style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">
-            <div>📍 Mile ${cp.distance_from_start_miles.toFixed(1)}</div>
-            <div>⏱️ Arrival ETA: <strong style="color: #e2e8f0;">${cp.eta_formatted}</strong></div>
+          <div style="font-size: 11px; color: #334155; margin-bottom: 8px;">
+            <div>MILE: <strong>${cp.distance_from_start_miles.toFixed(1)} MI</strong></div>
+            <div>ETA: <strong>${cp.eta_formatted}</strong></div>
           </div>
 
-          <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 8px; padding: 8px; margin-bottom: 8px; font-size: 11px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-              <span style="color: #94a3b8;">Condition:</span>
-              <span style="color: #ffffff; font-weight: 600;">${w.condition} (${w.temperature_f}°F)</span>
+          <div style="background: #f8fafc; border: 2px solid #09090b; padding: 6px 8px; margin-bottom: 8px; font-size: 11px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+              <span>WEATHER:</span>
+              <strong>${w.condition} (${w.temperature_f}°F)</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-              <span style="color: #94a3b8;">Wind Speed:</span>
-              <span style="color: ${cp.wind_risk === 'No Travel' || cp.wind_risk === 'Severe' ? '#ef4444' : '#ffffff'}; font-weight: 600;">
-                ${w.wind_speed_mph} mph (gusts ${w.wind_gusts_mph} mph)
-              </span>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+              <span>WIND SPEED:</span>
+              <strong style="color: ${cp.wind_risk === 'No Travel' || cp.wind_risk === 'Severe' ? '#dc2626' : '#16a34a'};">
+                ${w.wind_speed_mph} MPH (GUST ${w.wind_gusts_mph})
+              </strong>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-              <span style="color: #94a3b8;">Rain Rate:</span>
-              <span style="color: #ffffff; font-weight: 600;">${w.rain_in_hr} in/hr</span>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+              <span>RAIN RATE:</span>
+              <strong>${w.rain_in_hr} IN/HR</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
-              <span style="color: #94a3b8;">Snowfall:</span>
-              <span style="color: #ffffff; font-weight: 600;">${w.snow_in_hr} in/hr</span>
+              <span>SNOW RATE:</span>
+              <strong>${w.snow_in_hr} IN/HR</strong>
             </div>
           </div>
 
           ${cp.advisories && cp.advisories.length > 0 ? `
-            <div style="background: #ef444415; border: 1px solid #ef444440; border-radius: 6px; padding: 6px 8px; font-size: 10px; color: #fca5a5; line-height: 1.3;">
+            <div style="background: #fee2e2; border: 2px solid #dc2626; padding: 6px; font-size: 10px; color: #991b1b; font-weight: bold;">
               ⚠️ ${cp.advisories.join('<br>')}
             </div>
           ` : ''}
@@ -348,60 +328,51 @@ export const MapView: React.FC<MapViewProps> = ({
     ctx.globalAlpha = heatmapOpacity;
 
     const zoom = map.getZoom();
-    // Dynamically scale heat spot radius based on map zoom
     const baseRadius = Math.max(35, Math.min(160, Math.pow(2, zoom - 2) * 12));
 
     hourData.points.forEach((pt: HeatmapPoint) => {
       const containerPoint = map.latLngToContainerPoint([pt.lat, pt.lon]);
 
-      // Calculate metric intensity and color
-      let colorStop0 = 'rgba(16, 185, 129, 0.7)'; // Low Green
-      let colorStop1 = 'rgba(16, 185, 129, 0)';
+      let colorStop0 = 'rgba(22, 163, 74, 0.7)'; // Arcade Green
+      let colorStop1 = 'rgba(22, 163, 74, 0)';
 
       if (activeMetric === 'risk') {
         const score = pt.risk_score;
-        if (score === 5) {
-          colorStop0 = 'rgba(136, 19, 55, 0.85)'; // No Travel burgundy
-        } else if (score === 4) {
-          colorStop0 = 'rgba(239, 68, 68, 0.8)'; // Severe red
-        } else if (score === 3) {
-          colorStop0 = 'rgba(249, 115, 22, 0.75)'; // High orange
-        } else if (score === 2) {
-          colorStop0 = 'rgba(245, 158, 11, 0.7)'; // Moderate amber
-        } else {
-          colorStop0 = 'rgba(16, 185, 129, 0.6)'; // Low green
-        }
+        if (score === 5) colorStop0 = 'rgba(127, 29, 29, 0.85)';
+        else if (score === 4) colorStop0 = 'rgba(220, 38, 38, 0.8)';
+        else if (score === 3) colorStop0 = 'rgba(234, 88, 12, 0.75)'; // Arcade Orange
+        else if (score === 2) colorStop0 = 'rgba(245, 158, 11, 0.7)';
+        else colorStop0 = 'rgba(22, 163, 74, 0.6)'; // Arcade Green
       } else if (activeMetric === 'wind') {
         const w = pt.wind_mph;
-        if (w >= 55) colorStop0 = 'rgba(136, 19, 55, 0.85)';
-        else if (w >= 45) colorStop0 = 'rgba(239, 68, 68, 0.8)';
-        else if (w >= 35) colorStop0 = 'rgba(249, 115, 22, 0.75)';
+        if (w >= 55) colorStop0 = 'rgba(127, 29, 29, 0.85)';
+        else if (w >= 45) colorStop0 = 'rgba(220, 38, 38, 0.8)';
+        else if (w >= 35) colorStop0 = 'rgba(234, 88, 12, 0.75)';
         else if (w >= 25) colorStop0 = 'rgba(245, 158, 11, 0.7)';
-        else colorStop0 = 'rgba(16, 185, 129, 0.5)';
+        else colorStop0 = 'rgba(22, 163, 74, 0.5)';
       } else if (activeMetric === 'rain') {
         const r = pt.rain_in_hr;
-        if (r > 1.0) colorStop0 = 'rgba(136, 19, 55, 0.85)';
-        else if (r >= 0.5) colorStop0 = 'rgba(239, 68, 68, 0.8)';
-        else if (r >= 0.25) colorStop0 = 'rgba(249, 115, 22, 0.75)';
-        else if (r >= 0.10) colorStop0 = 'rgba(59, 130, 246, 0.7)';
-        else colorStop0 = 'rgba(16, 185, 129, 0.4)';
+        if (r > 1.0) colorStop0 = 'rgba(127, 29, 29, 0.85)';
+        else if (r >= 0.5) colorStop0 = 'rgba(220, 38, 38, 0.8)';
+        else if (r >= 0.25) colorStop0 = 'rgba(234, 88, 12, 0.75)';
+        else if (r >= 0.10) colorStop0 = 'rgba(2, 132, 199, 0.7)';
+        else colorStop0 = 'rgba(22, 163, 74, 0.4)';
       } else if (activeMetric === 'snow') {
         const s = pt.snow_in_hr;
-        if (s > 3.0) colorStop0 = 'rgba(136, 19, 55, 0.85)';
-        else if (s >= 2.0) colorStop0 = 'rgba(239, 68, 68, 0.8)';
-        else if (s >= 1.0) colorStop0 = 'rgba(249, 115, 22, 0.75)';
-        else if (s >= 0.5) colorStop0 = 'rgba(147, 197, 253, 0.7)';
-        else colorStop0 = 'rgba(16, 185, 129, 0.3)';
+        if (s > 3.0) colorStop0 = 'rgba(127, 29, 29, 0.85)';
+        else if (s >= 2.0) colorStop0 = 'rgba(220, 38, 38, 0.8)';
+        else if (s >= 1.0) colorStop0 = 'rgba(234, 88, 12, 0.75)';
+        else if (s >= 0.5) colorStop0 = 'rgba(96, 165, 250, 0.7)';
+        else colorStop0 = 'rgba(22, 163, 74, 0.3)';
       } else if (activeMetric === 'temp') {
         const t = pt.temp_f;
-        if (t <= 32) colorStop0 = 'rgba(147, 197, 253, 0.8)'; // Freezing blue
-        else if (t < 50) colorStop0 = 'rgba(45, 212, 191, 0.7)'; // Cool teal
-        else if (t < 75) colorStop0 = 'rgba(16, 185, 129, 0.6)'; // Mild green
-        else if (t < 90) colorStop0 = 'rgba(245, 158, 11, 0.7)'; // Warm amber
-        else colorStop0 = 'rgba(239, 68, 68, 0.8)'; // Hot red
+        if (t <= 32) colorStop0 = 'rgba(96, 165, 250, 0.8)';
+        else if (t < 50) colorStop0 = 'rgba(20, 184, 166, 0.7)';
+        else if (t < 75) colorStop0 = 'rgba(22, 163, 74, 0.6)';
+        else if (t < 90) colorStop0 = 'rgba(249, 115, 22, 0.7)';
+        else colorStop0 = 'rgba(220, 38, 38, 0.8)';
       }
 
-      // Draw smooth radial gradient heat circle
       const grad = ctx.createRadialGradient(
         containerPoint.x,
         containerPoint.y,
@@ -430,7 +401,6 @@ export const MapView: React.FC<MapViewProps> = ({
 
     const handleMapMove = () => {
       updateCanvasBounds();
-      // Trigger canvas re-render
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
@@ -449,21 +419,21 @@ export const MapView: React.FC<MapViewProps> = ({
       hourData.points.forEach((pt: HeatmapPoint) => {
         const containerPoint = map.latLngToContainerPoint([pt.lat, pt.lon]);
 
-        let colorStop0 = 'rgba(16, 185, 129, 0.7)';
+        let colorStop0 = 'rgba(22, 163, 74, 0.7)';
         if (activeMetric === 'risk') {
           const score = pt.risk_score;
-          if (score === 5) colorStop0 = 'rgba(136, 19, 55, 0.85)';
-          else if (score === 4) colorStop0 = 'rgba(239, 68, 68, 0.8)';
-          else if (score === 3) colorStop0 = 'rgba(249, 115, 22, 0.75)';
+          if (score === 5) colorStop0 = 'rgba(127, 29, 29, 0.85)';
+          else if (score === 4) colorStop0 = 'rgba(220, 38, 38, 0.8)';
+          else if (score === 3) colorStop0 = 'rgba(234, 88, 12, 0.75)';
           else if (score === 2) colorStop0 = 'rgba(245, 158, 11, 0.7)';
-          else colorStop0 = 'rgba(16, 185, 129, 0.6)';
+          else colorStop0 = 'rgba(22, 163, 74, 0.6)';
         } else if (activeMetric === 'wind') {
           const w = pt.wind_mph;
-          if (w >= 55) colorStop0 = 'rgba(136, 19, 55, 0.85)';
-          else if (w >= 45) colorStop0 = 'rgba(239, 68, 68, 0.8)';
-          else if (w >= 35) colorStop0 = 'rgba(249, 115, 22, 0.75)';
+          if (w >= 55) colorStop0 = 'rgba(127, 29, 29, 0.85)';
+          else if (w >= 45) colorStop0 = 'rgba(220, 38, 38, 0.8)';
+          else if (w >= 35) colorStop0 = 'rgba(234, 88, 12, 0.75)';
           else if (w >= 25) colorStop0 = 'rgba(245, 158, 11, 0.7)';
-          else colorStop0 = 'rgba(16, 185, 129, 0.5)';
+          else colorStop0 = 'rgba(22, 163, 74, 0.5)';
         }
 
         const grad = ctx.createRadialGradient(
@@ -516,30 +486,27 @@ export const MapView: React.FC<MapViewProps> = ({
       return;
     }
 
-    // Fraction along route
     const fraction = Math.min(1.0, currentHourIndex / Math.max(1.0, totalDurationHours));
     const targetIdx = Math.floor(fraction * (coords.length - 1));
     const truckCoord = coords[targetIdx];
 
     const truckIcon = L.divIcon({
-      className: 'truck-sim-marker',
+      className: 'arcade-truck-marker',
       html: `
         <div style="
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: #0284c7;
-          border: 2px solid #ffffff;
-          box-shadow: 0 4px 12px rgba(2, 132, 199, 0.6);
+          width: 36px;
+          height: 36px;
+          background: #f97316;
+          border: 3px solid #09090b;
+          box-shadow: 3px 3px 0px #09090b;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 16px;
-          animation: pulse 1s infinite;
+          font-size: 18px;
         ">🚚</div>
       `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
     });
 
     if (truckMarkerRef.current) {
@@ -553,15 +520,15 @@ export const MapView: React.FC<MapViewProps> = ({
 
     const arrived = fraction >= 1.0;
     truckMarkerRef.current.bindTooltip(
-      `<b>Truck Position at +${currentHourIndex}h</b><br>${
-        arrived ? 'Arrived at Destination' : `Traveled ~${(fraction * selectedRoute.distance_miles).toFixed(0)} mi`
+      `<b>TRUCK SIMULATOR: +${currentHourIndex}H</b><br>${
+        arrived ? 'ARRIVED AT DESTINATION' : `TRAVELED ~${(fraction * selectedRoute.distance_miles).toFixed(0)} MI`
       }`,
-      { permanent: false, direction: 'top' }
+      { permanent: false, direction: 'top', className: 'bg-white text-slate-950 border-2 border-slate-950 font-pixel text-xs' }
     );
   }, [currentHourIndex, routes, selectedRouteId]);
 
   return (
-    <div className="relative w-full h-[520px] lg:h-[600px] rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
+    <div className="relative w-full h-[520px] lg:h-[600px] border-4 border-slate-950 shadow-arcade-lg bg-white overflow-hidden">
       <div ref={mapContainerRef} className="w-full h-full" />
     </div>
   );
