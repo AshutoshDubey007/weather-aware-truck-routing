@@ -50,10 +50,9 @@ export const MapView: React.FC<MapViewProps> = ({
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Bright, crisp CartoDB Voyager tiles (fits the white, green & orange theme!)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; CARTO &copy; OpenStreetMap',
-      subdomains: 'abcd',
+    // Clean, 100% free OpenStreetMap tiles with ZERO watermarks and NO API key required
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19,
     }).addTo(map);
 
