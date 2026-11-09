@@ -4,4 +4,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('routing.urls')),
+    path('', include('routing.urls')),  # Fallback in case /api/ prefix is stripped by proxy
 ]
