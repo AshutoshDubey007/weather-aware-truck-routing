@@ -222,11 +222,5 @@ Fast autocomplete suggestions powered by Photon and OpenStreetMap.
 
 ---
 
-## 🎥 Video Walkthrough
-
-See [`WALKTHROUGH.md`](./WALKTHROUGH.md) for the structured 5–10 minute video walkthrough script with timestamped talking points and demo scenarios.
-
----
-
 ## ⚖️ License
 MIT License. Built for the Spotter Developer Challenge.
